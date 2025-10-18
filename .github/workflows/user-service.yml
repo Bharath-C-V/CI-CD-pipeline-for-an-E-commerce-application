@@ -1,0 +1,40 @@
+name: User Service CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'services/user-service/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'services/user-service/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: services/user-service
+        run: npm ci
+      
+      - name: Run tests
+        working-directory: services/user-service
+        run: npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        working-directory: services/user-service
+        run: docker build -t user-service:${{ github.sha }} .
