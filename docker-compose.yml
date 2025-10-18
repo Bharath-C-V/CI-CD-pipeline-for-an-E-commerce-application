@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres-users:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: postgres-users
+      DB_PORT: 5432
+      DB_NAME: users
+      DB_USER: postgres
+      DB_PASSWORD: password
+    depends_on:
+      - postgres-users
+
+  product-service:
+    build: ./services/product-service
+    ports:
+      - "3002:3002"
+    environment:
+      MONGO_URL: mongodb://mongodb:27017
+    depends_on:
+      - mongodb
+
+  order-service:
+    build: ./services/order-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
